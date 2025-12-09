@@ -1,0 +1,50 @@
+# --- Python general ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.sqlite3
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Streamlit cache ---
+.streamlit/cache/
+.streamlit/credentials.toml
+.streamlit/config.toml
+
+# --- VSCode ---
+.vscode/
+.settings/
+*.code-workspace
+
+# --- macOS ---
+.DS_Store
+
+# --- Logs ---
+*.log
+
+# --- Jupyter notebooks checkpoints (if any) ---
+.ipynb_checkpoints/
+
+# --- Model files (if accidentally downloaded) ---
+*.bin
+*.pt
+*.ckpt
+
+# --- LanceDB temp folders ---
+**/_transactions/
+**/_versions/
+
+# --- Environment files ---
+.env
+.env.local
+.env.*.local
+
+# --- Build artifacts ---
+dist/
+build/
