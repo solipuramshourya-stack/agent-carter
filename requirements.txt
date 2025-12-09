@@ -10,7 +10,8 @@ openai==2.9.0
 
 # Semantic embeddings (NO TORCH NEEDED)
 sentence-transformers==2.2.2
-onnxruntime==1.17.0
+huggingface_hub==0.14.1
+onnxruntime==1.17.1
 
 # EXA Search
 exa-py==2.0.1
