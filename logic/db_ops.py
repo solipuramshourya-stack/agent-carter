@@ -9,7 +9,7 @@ from logic.db_models import SessionLocal, Contact, DailyQueue, Outbox
 from logic.embeddings import embed, embed_query, get_contacts_table
 from logic.llm_ops import draft_outreach
 
-DB_DIR = "agent_carter_lancedb"
+DB_DIR = "agent_carter_lancedb_streamlitcloud"
 
 
 # ---------------------------------------------------------
