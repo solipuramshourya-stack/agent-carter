@@ -16,6 +16,8 @@ ENV/
 .streamlit/cache/
 .streamlit/credentials.toml
 .streamlit/config.toml
+.streamlit/secrets.toml
+
 
 # --- VSCode ---
 .vscode/
@@ -48,3 +50,11 @@ ENV/
 # --- Build artifacts ---
 dist/
 build/
+
+# --- Gmail API credentials ---
+token.json
+credentials.json
+gmail_credentials.json
+gmail_token.json
+*.json
+
