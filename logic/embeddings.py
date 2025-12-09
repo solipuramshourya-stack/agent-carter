@@ -5,7 +5,7 @@ import lancedb
 from lancedb import connect
 from openai import OpenAI
 
-DB_DIR = "agent_carter_lancedb"
+DB_DIR = "agent_carter_lancedb_streamlitcloud"
 EMBED_MODEL = "text-embedding-3-small"
 EMBED_DIM = 1536   # OpenAI embedding dimension
 
