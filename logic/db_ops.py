@@ -1,15 +1,21 @@
 # logic/db_ops.py
 
+import hashlib
+import json
+import logging
 from datetime import datetime, timezone
 import pyarrow as pa
 import numpy as np
 from lancedb import connect
+from sqlalchemy.exc import IntegrityError
 
 from logic.db_models import SessionLocal, Contact, DailyQueue, Outbox
 from logic.embeddings import embed, embed_query, get_contacts_table
 from logic.llm_ops import draft_outreach
 
 DB_DIR = "agent_carter_lancedb_streamlitcloud"
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------
@@ -69,8 +75,7 @@ def count_contacts(user_id=None):
 # ---------------------------------------------------------
 
 def ingest_lancedb(user_id=None):
-    print("\n========== INGEST LANCEDB START ==========")
-    print("User ID:", user_id)
+    logger.info("ingest_lancedb start user_id=%s", user_id)
 
     s = SessionLocal()
     rows = (
@@ -80,10 +85,9 @@ def ingest_lancedb(user_id=None):
     )
     s.close()
 
-    print("[DEBUG] SQL rows fetched:", len(rows))
+    logger.debug("sql rows fetched: %d", len(rows))
     if not rows:
-        print("[LanceDB] No contacts to ingest for user:", user_id)
-        print("========== INGEST LANCEDB END ==========\n")
+        logger.info("no contacts to ingest for user_id=%s", user_id)
         return
 
     ids = [str(r.id) for r in rows]
@@ -98,15 +102,13 @@ def ingest_lancedb(user_id=None):
         for r in rows
     ]
 
-    print("[DEBUG] First meta example:", metas[0] if metas else None)
+    logger.debug("first meta example: %s", metas[0] if metas else None)
 
     vecs = embed(docs)
-    print("[DEBUG] Embeddings shape:", vecs.shape)
+    logger.debug("embeddings shape: %s", getattr(vecs, "shape", None))
 
     tbl = get_contacts_table(user_id=user_id)
-    print("[DEBUG] Table after get_contacts_table:", tbl.name)
-
-    print("[DEBUG] Table schema:", tbl.schema)
+    logger.debug("table name=%s schema=%s", tbl.name, tbl.schema)
 
     arr = pa.Table.from_arrays(
         [
@@ -118,12 +120,10 @@ def ingest_lancedb(user_id=None):
         schema=tbl.schema
     )
 
-    print("[DEBUG] Arrow table rows:", arr.num_rows)
+    logger.debug("arrow table rows: %s", arr.num_rows)
 
-    print(f"[LanceDB] Ingesting {len(rows)} contacts into {tbl.name}")
+    logger.info("ingesting %d contacts into %s", len(rows), tbl.name)
     tbl.add(arr, mode="overwrite")
-
-    print("========== INGEST LANCEDB END ==========\n")
 
 # ---------------------------------------------------------
 # STALE DETECTION
@@ -156,7 +156,7 @@ def search_lancedb(query: str, user_id: str, n: int = 10):
 
     # If missing: build table + index
     if table_name not in db.table_names():
-        print("[LanceDB] Table missing → ingesting…")
+        logger.info("lancedb table %s missing; ingesting", table_name)
         ingest_lancedb(user_id=user_id)
 
     # After ingest, check again
@@ -166,7 +166,7 @@ def search_lancedb(query: str, user_id: str, n: int = 10):
     tbl = db.open_table(table_name)
 
     if is_stale_lancedb(tbl):
-        print("[LanceDB] Stale → rebuilding")
+        logger.info("lancedb table %s stale; rebuilding", table_name)
         ingest_lancedb(user_id=user_id)
         tbl = db.open_table(table_name)
 
@@ -196,36 +196,63 @@ def _row_to_candidate(df_row):
 # ADD TO QUEUE (multi-user)
 # ---------------------------------------------------------
 
+def _queue_linkedin_key(candidate: dict, user_id: str) -> str:
+    """
+    Stable key for (user, linkedin) uniqueness. Empty/missing LinkedIn uses a
+    deterministic placeholder so duplicates are detected without a global UNIQUE
+    on bare empty strings (legacy schema issue).
+    """
+    u = (candidate.get("linkedin") or "").strip()
+    if u:
+        return u
+    name = (candidate.get("name") or "").strip()
+    headline = (candidate.get("headline") or "").strip()
+    digest = hashlib.sha256(f"{user_id}|{name}|{headline}".encode()).hexdigest()[:32]
+    return f"manual:{user_id}:{digest}"
+
+
 def add_to_queue(candidate: dict, user_id: str, reason: str = "", drafted_dm: str = "", drafted_email: str = ""):
+    """
+    Returns (added: bool, message: str | None). Message is set on failure or duplicate.
+    """
+    linkedin_key = _queue_linkedin_key(candidate, user_id)
+
     s = SessionLocal()
-    exists = (
-        s.query(DailyQueue)
-        .filter(
-            DailyQueue.linkedin_url == candidate.get("linkedin", ""),
-            DailyQueue.user_id == user_id
+    try:
+        exists = (
+            s.query(DailyQueue)
+            .filter(
+                DailyQueue.linkedin_url == linkedin_key,
+                DailyQueue.user_id == user_id,
+            )
+            .first()
         )
-        .first()
-    )
-    if exists:
+        if exists:
+            return False, "Already in your queue."
+
+        q = DailyQueue(
+            user_id=user_id,
+            linkedin_url=linkedin_key,
+            full_name=candidate.get("name", "") or "",
+            headline=candidate.get("headline", "") or "",
+            reason=reason,
+            drafted_dm=drafted_dm,
+            drafted_email=drafted_email,
+            added_at=datetime.now(timezone.utc),
+            sent=False,
+        )
+
+        s.add(q)
+        s.commit()
+        return True, None
+    except IntegrityError:
+        s.rollback()
+        return False, "Could not add (duplicate entry or database conflict)."
+    except Exception as e:
+        s.rollback()
+        return False, f"Could not add to queue: {e}"
+    finally:
         s.close()
-        return False
-
-    q = DailyQueue(
-        user_id=user_id,
-        linkedin_url=candidate.get("linkedin", ""),
-        full_name=candidate.get("name", ""),
-        headline=candidate.get("headline", ""),
-        reason=reason,
-        drafted_dm=drafted_dm,
-        drafted_email=drafted_email,
-        added_at=datetime.now(timezone.utc),
-        sent=False,
-    )
-
-    s.add(q)
-    s.commit()
-    s.close()
-    return True
 
 
 # ---------------------------------------------------------
@@ -315,6 +342,12 @@ def mark_outbox_sent(day: str, user_id: str):
 # ---------------------------------------------------------
 
 def prepare_today_from_queue(user_id: str, email_to: str, query: str = "", overwrite: bool = False):
+    """
+    Pull the next queue row, generate a LinkedIn DM draft, and store the day’s
+    “outbox” row. Primary content is `drafted_dm`; `email_body` duplicates the DM
+    for legacy readers that only read email columns (product is DM-first, not
+    cold email to the candidate).
+    """
     day = today_key()
 
     existing = get_outbox_for_day(day, user_id)
@@ -323,54 +356,64 @@ def prepare_today_from_queue(user_id: str, email_to: str, query: str = "", overw
 
     # Fetch next unsent queue entry for THIS USER
     s = SessionLocal()
-    q = (
-        s.query(DailyQueue)
-        .filter(
-            DailyQueue.user_id == user_id,
-            DailyQueue.sent == False
+    try:
+        q = (
+            s.query(DailyQueue)
+            .filter(
+                DailyQueue.user_id == user_id,
+                DailyQueue.sent == False,
+            )
+            .order_by(DailyQueue.added_at.asc())
+            .first()
         )
-        .order_by(DailyQueue.added_at.asc())
-        .first()
-    )
 
-    if not q:
+        if not q:
+            raise RuntimeError("Queue is empty. Add someone to the queue first.")
+
+        candidate = {
+            "name": q.full_name,
+            "headline": q.headline,
+            "linkedin": q.linkedin_url,
+            "summary": "",
+        }
+
+        try:
+            drafts = draft_outreach(query or "general networking", candidate)
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate outreach draft: {e}") from e
+
+        dm = (drafts.get("drafted_dm") or "").strip()
+        reason_raw = drafts.get("reason") or []
+        if isinstance(reason_raw, list):
+            reason_stored = json.dumps(reason_raw)
+        else:
+            reason_stored = str(reason_raw)
+
+        payload = {
+            "email_to": email_to,
+            "query": query or "",
+            "source": "queue",
+            "linkedin_url": candidate["linkedin"],
+            "full_name": candidate["name"],
+            "headline": candidate["headline"],
+            "summary": candidate["summary"],
+            "match_pct": None,
+            "reason": reason_stored,
+            "drafted_dm": dm,
+            "email_subject": "LinkedIn DM draft (Agent Carter)",
+            "email_body": dm,
+            "sent": False,
+        }
+
+        outbox = upsert_outbox(day, payload, user_id=user_id, overwrite=True)
+
+        q.sent = True
+        s.add(q)
+        s.commit()
+
+        return outbox, "prepared_from_queue"
+    finally:
         s.close()
-        raise RuntimeError("Queue is empty. Add someone to the queue first.")
-
-    candidate = {
-        "name": q.full_name,
-        "headline": q.headline,
-        "linkedin": q.linkedin_url,
-        "summary": "",
-    }
-
-    drafts = draft_outreach(query or "general networking", candidate)
-
-    payload = {
-        "email_to": email_to,
-        "query": query or "",
-        "source": "queue",
-        "linkedin_url": candidate["linkedin"],
-        "full_name": candidate["name"],
-        "headline": candidate["headline"],
-        "summary": candidate["summary"],
-        "match_pct": None,
-        "reason": drafts["reason"],
-        "drafted_dm": drafts["drafted_dm"],
-        "email_subject": drafts["email_subject"],
-        "email_body": drafts["email_body"],
-        "sent": False,
-    }
-
-    outbox = upsert_outbox(day, payload, user_id=user_id, overwrite=True)
-
-    # mark queue row as sent
-    q.sent = True
-    s.add(q)
-    s.commit()
-    s.close()
-
-    return outbox, "prepared_from_queue"
 
 
 
@@ -383,7 +426,7 @@ def ensure_lancedb_ready():
 
     # If table does not exist → build
     if "contacts" not in db.table_names():
-        print("LanceDB missing → building.")
+        logger.warning("lancedb contacts table missing; building")
         ingest_lancedb()
         return
 
@@ -392,7 +435,7 @@ def ensure_lancedb_ready():
     try:
         existing = tbl.count()  # might work in your version
     except Exception:
-        print("LanceDB corrupt → rebuilding.")
+        logger.warning("lancedb corrupt or unreadable; rebuilding")
         ingest_lancedb()
         return
 
@@ -401,7 +444,11 @@ def ensure_lancedb_ready():
     s.close()
 
     if sql_count != existing:
-        print("LanceDB count mismatch → rebuilding.")
+        logger.warning(
+            "lancedb/sql count mismatch (sql=%s lance=%s); rebuilding",
+            sql_count,
+            existing,
+        )
         ingest_lancedb()
     else:
-        print("LanceDB OK.")
+        logger.debug("lancedb row count matches sql (%s)", sql_count)

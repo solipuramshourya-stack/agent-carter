@@ -30,3 +30,7 @@ google-api-python-client==2.187.0
 requests==2.32.3
 tqdm==4.67.1
 protobuf==4.25.3
+tenacity==9.0.0
+
+# Tests (CI)
+pytest==8.3.4

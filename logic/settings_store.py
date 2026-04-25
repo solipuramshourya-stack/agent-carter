@@ -1,3 +1,11 @@
+"""
+Optional local overrides in settings.json (not for production secrets).
+
+Supported keys (all optional):
+  - openai_model          — e.g. gpt-4o-mini
+  - openai_embed_model    — e.g. text-embedding-3-small
+  - search_result_limit   — int 1–50 for Exa + LanceDB top-k
+"""
 import json
 import os
 

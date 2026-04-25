@@ -1,10 +1,11 @@
 # logic/llm_ops.py
-import os
 import json
 import re
 import html
-from openai import OpenAI
-import streamlit as st
+from openai import APIConnectionError, APITimeoutError, RateLimitError
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+
+from logic.config import get_openai_chat_model, get_openai_client
 
 
 # ----------------------------------------------------
@@ -49,19 +50,6 @@ def sanitize_text(text: str) -> str:
 
 
 # ----------------------------------------------------
-# ENV + CLIENT
-# ----------------------------------------------------
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-if not OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY is missing.")
-
-client = OpenAI(api_key=OPENAI_API_KEY)
-
-OPENAI_MODEL = "gpt-4o-mini"
-
-
-
-# ----------------------------------------------------
 # Helper: Safe JSON extraction
 # ----------------------------------------------------
 def _safe_json_parse(text):
@@ -82,6 +70,18 @@ def _safe_json_parse(text):
             "email_subject": "",
             "email_body": "",
         }
+
+
+@retry(
+    reraise=True,
+    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=1, min=2, max=45),
+    retry=retry_if_exception_type(
+        (APIConnectionError, APITimeoutError, RateLimitError)
+    ),
+)
+def _chat_completions_create(**kwargs):
+    return get_openai_client().chat.completions.create(**kwargs)
 
 
 # ----------------------------------------------------
@@ -105,38 +105,30 @@ Candidate:
 - Headline: {headline}
 - LinkedIn: {linkedin}
 
-WRITE OUTREACH FROM Agent Carter → TO THIS PERSON.
-
-EMAIL RULES:
-- Do NOT use the candidate name in greeting.
-- Start email with "Hi there,".
-- Use clear paragraph breaks (\\n\\n).
-- End with:
-  Best regards,
-  
+Write a short LinkedIn DM FROM the user TO this person (connection request or first message).
+Keep it human, specific, and under ~300 characters unless a longer note clearly fits.
 
 RETURN JSON ONLY:
 {{
   "reason": ["bullet 1", "bullet 2", "bullet 3"],
-  "drafted_dm": "Short LinkedIn DM",
-  "email_subject": "Short subject",
-  "email_body": "120-word email body"
+  "drafted_dm": "LinkedIn DM text only — paste this into LinkedIn yourself."
 }}
 """
 
-    response = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=[{"role": "user", "content": prompt}]
+    model = get_openai_chat_model()
+    response = _chat_completions_create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
     )
 
-    raw = response.choices[0].message.content
+    raw = response.choices[0].message.content or ""
     data = _safe_json_parse(raw)
 
     return {
         "reason": data.get("reason", []),
         "drafted_dm": data.get("drafted_dm", ""),
-        "email_subject": data.get("email_subject", ""),
-        "email_body": data.get("email_body", ""),
+        "email_subject": "",
+        "email_body": "",
     }
 
 
@@ -148,7 +140,6 @@ def chat_refine(user_request: str, context: dict):
     # 🔒 SANITIZE user request and context inputs
     safe_request = sanitize_text(user_request)
     safe_dm = sanitize_text(context.get("dm", ""))
-    safe_email_body = sanitize_text(context.get("email_body", ""))
 
     tone = sanitize_text(context.get("tone", "Professional"))
     name = sanitize_text(context.get("name", ""))
@@ -156,7 +147,7 @@ def chat_refine(user_request: str, context: dict):
     linkedin = sanitize_text(context.get("linkedin", ""))
 
     prompt = f"""
-You are Agent Carter, an AI assistant helping refine networking messages.
+You are Agent Carter, an AI assistant helping refine LinkedIn DMs.
 
 TONE REQUESTED: {tone}
 
@@ -168,22 +159,20 @@ LinkedIn: {linkedin}
 CURRENT DM:
 {safe_dm}
 
-CURRENT EMAIL BODY:
-{safe_email_body}
-
 USER REQUEST:
 {safe_request}
 
 INSTRUCTIONS:
-- Return ONLY the rewritten content (no explanation).
+- Return ONLY the rewritten DM text (no explanation, no quotes).
 - Do NOT add "Agent Carter says".
 - Respect the tone.
-- Keep email paragraphing clean with \\n\\n.
+- Keep it appropriate for LinkedIn (concise; line breaks ok).
 """
 
-    response = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=[{"role": "user", "content": prompt}]
+    model = get_openai_chat_model()
+    response = _chat_completions_create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
     )
 
     return response.choices[0].message.content.strip()
