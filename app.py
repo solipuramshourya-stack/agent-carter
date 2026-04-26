@@ -51,195 +51,10 @@ def sanitize_text(text):
 
 
 # -------------------------------------------------------
-# PAGE CONFIG + THEME
+# PAGE CONFIG
 # -------------------------------------------------------
-st.set_page_config(page_title="Agent Carter", page_icon="🕵️", layout="wide")
-
-st.markdown(
-    """
-<style>
-    :root {
-        --ac-bg: #0b0f17;
-        --ac-panel: rgba(22, 28, 42, 0.82);
-        --ac-panel-strong: rgba(29, 37, 55, 0.95);
-        --ac-border: rgba(148, 163, 184, 0.18);
-        --ac-muted: #9ca3af;
-        --ac-text: #f8fafc;
-        --ac-accent: #ff4b5c;
-        --ac-accent-2: #f59e0b;
-    }
-
-    .stApp {
-        background:
-            radial-gradient(circle at top left, rgba(255, 75, 92, 0.18), transparent 30rem),
-            radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 26rem),
-            var(--ac-bg);
-    }
-
-    .block-container {
-        max-width: 1220px;
-        padding-top: 2.2rem;
-        padding-bottom: 4rem;
-    }
-
-    [data-testid="stHeader"] {
-        background: transparent;
-    }
-
-    h1, h2, h3 {
-        letter-spacing: -0.035em;
-    }
-
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-color: var(--ac-border);
-        background: var(--ac-panel);
-        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.26);
-        backdrop-filter: blur(14px);
-    }
-
-    div[data-testid="stButton"] > button,
-    div[data-testid="stDownloadButton"] > button,
-    div[data-testid="stLinkButton"] > a {
-        border-radius: 0.75rem;
-        font-weight: 650;
-        border: 1px solid rgba(148, 163, 184, 0.25);
-        transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
-    }
-
-    div[data-testid="stButton"] > button:hover,
-    div[data-testid="stDownloadButton"] > button:hover,
-    div[data-testid="stLinkButton"] > a:hover {
-        transform: translateY(-1px);
-        border-color: rgba(255, 75, 92, 0.55);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.22);
-    }
-
-    div[data-testid="stTextInput"] input,
-    div[data-testid="stTextArea"] textarea,
-    div[data-baseweb="select"] > div {
-        border-radius: 0.8rem;
-        border-color: rgba(148, 163, 184, 0.22);
-        background: rgba(15, 23, 42, 0.75);
-    }
-
-    .ac-hero {
-        padding: 1.45rem 1.6rem;
-        margin-bottom: 1.25rem;
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        border-radius: 1.35rem;
-        background:
-            linear-gradient(135deg, rgba(255, 75, 92, 0.20), rgba(245, 158, 11, 0.10)),
-            rgba(15, 23, 42, 0.86);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
-    }
-
-    .ac-kicker {
-        color: #fecdd3;
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        margin-bottom: 0.35rem;
-    }
-
-    .ac-hero h1 {
-        margin: 0;
-        font-size: clamp(2rem, 4vw, 3.4rem);
-        line-height: 1.02;
-    }
-
-    .ac-hero p {
-        color: #cbd5e1;
-        max-width: 720px;
-        margin: 0.8rem 0 0;
-        font-size: 1.03rem;
-    }
-
-    .ac-pill-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.55rem;
-        margin-top: 1.1rem;
-    }
-
-    .ac-pill {
-        color: #e5e7eb;
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        border-radius: 999px;
-        padding: 0.35rem 0.7rem;
-        background: rgba(15, 23, 42, 0.55);
-        font-size: 0.84rem;
-    }
-
-    .ac-section-eyebrow {
-        color: var(--ac-accent-2);
-        font-size: 0.76rem;
-        font-weight: 800;
-        letter-spacing: 0.13em;
-        text-transform: uppercase;
-        margin-bottom: 0.25rem;
-    }
-
-    .ac-card-title {
-        margin: 0 0 0.25rem;
-        font-size: 1.25rem;
-        font-weight: 800;
-    }
-
-    .ac-muted {
-        color: var(--ac-muted);
-        font-size: 0.92rem;
-    }
-
-    .ac-result-rank {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-        border-radius: 999px;
-        background: rgba(255, 75, 92, 0.18);
-        color: #fecdd3;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-    }
-
-    .ac-chat-bubble {
-        padding: 0.8rem 0.95rem;
-        border-radius: 1rem;
-        margin: 0.45rem 0;
-        border: 1px solid rgba(148, 163, 184, 0.16);
-    }
-
-    .ac-chat-user {
-        background: rgba(255, 75, 92, 0.15);
-        margin-left: 12%;
-    }
-
-    .ac-chat-bot {
-        background: rgba(30, 41, 59, 0.82);
-        margin-right: 12%;
-    }
-</style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-<div class="ac-hero">
-    <div class="ac-kicker">Agent Carter</div>
-    <h1>Find warm intros faster.</h1>
-    <p>Search for high-signal candidates, rank them semantically, and generate LinkedIn outreach you can refine before sending.</p>
-    <div class="ac-pill-row">
-        <span class="ac-pill">Semantic candidate search</span>
-        <span class="ac-pill">Queue-first outreach</span>
-        <span class="ac-pill">Draft, refine, copy</span>
-    </div>
-</div>
-    """,
-    unsafe_allow_html=True,
-)
+st.set_page_config(page_title="Agent Carter", layout="wide")
+st.title("🕵️ Agent Carter — Networking Assistant")
 
 
 # -------------------------------------------------------
@@ -289,7 +104,7 @@ def render_copy_dm_button(dm_text: str, component_key: str):
         f"""
 <!DOCTYPE html>
 <html><body style="margin:0;">
-<button type="button" id="{safe_id}" style="width:100%;padding:0.65rem 0.9rem;cursor:pointer;border-radius:12px;border:1px solid rgba(148,163,184,.35);background:#111827;color:#f8fafc;font-weight:700;">
+<button type="button" id="{safe_id}" style="padding:0.4rem 0.9rem;cursor:pointer;border-radius:6px;border:1px solid #ccc;background:#f8f9fa;">
   Copy DM
 </button>
 <script>
@@ -329,128 +144,112 @@ left, right = st.columns([1.4, 1.0], gap="large")
 # LEFT PANEL — SEARCH
 # -------------------------------------------------------
 with left:
-    with st.container(border=True):
-        st.markdown('<div class="ac-section-eyebrow">Search</div>', unsafe_allow_html=True)
-        st.markdown('<div class="ac-card-title">Discover candidates</div>', unsafe_allow_html=True)
-        st.caption("Describe the people you want to meet. Carter will search, save, embed, and rank them.")
+    st.header("🔍 Search Candidates")
 
-        query = st.text_input(
-            "Search query",
-            placeholder="e.g., nyc product manager yale fintech"
-        )
+    query = st.text_input(
+        "Enter search query",
+        placeholder="e.g., nyc product manager yale fintech"
+    )
 
-        if st.button("Search candidates", type="primary", use_container_width=True):
-            if not query.strip():
-                st.warning("Please enter a query.")
-            else:
-                safe_query = sanitize_text(query)
+    if st.button("Search", type="primary", use_container_width=True):
+        if not query.strip():
+            st.warning("Please enter a query.")
+        else:
+            safe_query = sanitize_text(query)
 
-                with st.spinner("Searching, indexing, and ranking candidates…"):
-                    n_results = get_search_result_limit()
-                    profiles = run_exa(safe_query, num_results=n_results)
-                    insert_contacts(profiles, user_id=st.session_state.user_id)
+            with st.spinner("Searching for candidates"):
+                n_results = get_search_result_limit()
+                profiles = run_exa(safe_query, num_results=n_results)
+                insert_contacts(profiles, user_id=st.session_state.user_id)
 
-                    ingest_lancedb(user_id=st.session_state.user_id)
+                ingest_lancedb(user_id=st.session_state.user_id)
 
-                    df = search_lancedb(
-                        safe_query, user_id=st.session_state.user_id, n=n_results
-                    )
-                    st.session_state.search_results = df
+                df = search_lancedb(
+                    safe_query, user_id=st.session_state.user_id, n=n_results
+                )
+                st.session_state.search_results = df
 
-                    if len(df) > 0:
-                        top = df.iloc[0]
-                        st.session_state.selected_candidate = candidate_from_lancedb_row(top)
-                    else:
-                        st.session_state.selected_candidate = None
+                if len(df) > 0:
+                    top = df.iloc[0]
+                    st.session_state.selected_candidate = candidate_from_lancedb_row(top)
+                else:
+                    st.session_state.selected_candidate = None
 
-                    st.session_state.last_search_query = safe_query
+                st.session_state.last_search_query = safe_query
 
-                st.success("Search complete.")
-
-    st.write("")
+            st.success("Search complete!")
 
     # DISPLAY RESULTS
     df = st.session_state.search_results
 
     if df is not None:
-        with st.container(border=True):
-            result_count = 0 if df.empty else len(df)
-            st.markdown('<div class="ac-section-eyebrow">Ranked results</div>', unsafe_allow_html=True)
+        st.subheader("Top Candidates")
+        with st.expander("How ranking works", expanded=False):
             st.markdown(
-                f'<div class="ac-card-title">Top candidates <span class="ac-muted">({result_count})</span></div>',
-                unsafe_allow_html=True,
-            )
-            with st.expander("How ranking works", expanded=False):
-                st.markdown(
-                    """
+                """
 1. **Exa** returns profiles for your query; we save them as contacts.  
 2. Profiles are **embedded** into **LanceDB** (your personal index).  
 3. This list is **re-ranked by semantic similarity** (cosine distance) between your **query text** and each profile’s stored text — order can differ from Exa’s.  
 
 **Semantic match %** is a rough visualization (vector distance → score; **lower distance = closer**).  
 Run **Search** again after adding many profiles so the index stays in sync.
-                    """
-                )
+                """
+            )
 
-            if df.empty:
-                st.info("No matches found.")
-            else:
-                for i, (_, row) in enumerate(df.iterrows()):
-                    meta = row["meta"] or {}
-                    if not isinstance(meta, dict):
-                        try:
-                            meta = dict(meta)
-                        except Exception:
-                            meta = {}
+        if df.empty:
+            st.info("No matches found.")
+        else:
+            for i, (_, row) in enumerate(df.iterrows()):
+                meta = row["meta"] or {}
+                if not isinstance(meta, dict):
+                    try:
+                        meta = dict(meta)
+                    except Exception:
+                        meta = {}
 
-                    name = meta.get("name", "") or "Unknown candidate"
-                    headline = meta.get("headline", "")
-                    linkedin = meta.get("linkedin", "")
+                name = meta.get("name", "")
+                headline = meta.get("headline", "")
+                linkedin = meta.get("linkedin", "")
 
-                    with st.container(border=True):
-                        title_col, action_col = st.columns([3, 1.15])
-                        with title_col:
-                            st.markdown(f'<div class="ac-result-rank">#{i + 1}</div>', unsafe_allow_html=True)
-                            st.markdown(f"### {name}")
-                            st.caption("" if headline in (None, "None") else headline)
-                        with action_col:
-                            li_url = (linkedin or "").strip()
-                            if li_url:
-                                st.link_button("Open LinkedIn", li_url, use_container_width=True)
+                with st.container():
+                    st.markdown(f"### {name}")
+                    st.caption("" if headline in (None, "None") else headline)
+                    dist = row_vector_distance(row)
+                    if dist is not None:
+                        st.caption(format_match_line(dist))
+
+                    li_url = (linkedin or "").strip()
+                    if li_url:
+                        st.link_button("Open LinkedIn", li_url)
+                    else:
+                        st.caption("No LinkedIn URL on profile.")
+
+                    colA, colB = st.columns(2)
+
+                    with colA:
+                        if st.button(f"Add to Queue", key=f"queue_row_{i}", use_container_width=True):
+                            candidate = {
+                                "name": name,
+                                "headline": headline,
+                                "linkedin": linkedin,
+                            }
+                            added, err = add_to_queue(
+                                candidate, user_id=st.session_state.user_id
+                            )
+                            if added:
+                                st.success("Added to queue.")
+                            elif err:
+                                st.warning(err)
                             else:
-                                st.caption("No LinkedIn URL.")
+                                st.info("Already in your queue.")
 
-                        dist = row_vector_distance(row)
-                        if dist is not None:
-                            st.caption(format_match_line(dist))
+                    with colB:
+                        if st.button(f"Select for Outreach", key=f"pick_row_{i}", use_container_width=True):
+                            st.session_state.selected_candidate = candidate_from_lancedb_row(row)
+                            st.rerun()
 
-                        colA, colB = st.columns(2)
-
-                        with colA:
-                            if st.button("Add to queue", key=f"queue_row_{i}", use_container_width=True):
-                                candidate = {
-                                    "name": name,
-                                    "headline": headline,
-                                    "linkedin": linkedin,
-                                }
-                                added, err = add_to_queue(
-                                    candidate, user_id=st.session_state.user_id
-                                )
-                                if added:
-                                    st.success("Added to queue.")
-                                elif err:
-                                    st.warning(err)
-                                else:
-                                    st.info("Already in your queue.")
-
-                        with colB:
-                            if st.button("Use for outreach", key=f"pick_row_{i}", use_container_width=True):
-                                st.session_state.selected_candidate = candidate_from_lancedb_row(row)
-                                st.rerun()
-
-        with st.container(border=True):
-            st.markdown('<div class="ac-section-eyebrow">Digest</div>', unsafe_allow_html=True)
-            st.markdown('<div class="ac-card-title">Email me this list</div>', unsafe_allow_html=True)
+            st.divider()
+            st.subheader("Email me this list")
             st.caption(
                 "Sends a plain-text copy of the candidates above to **your** inbox "
                 "(from the Gmail account configured for this app — not to the candidates)."
@@ -491,9 +290,7 @@ Run **Search** again after adding many profiles so the index stays in sync.
 # RIGHT PANEL — OUTREACH + CHAT
 # -------------------------------------------------------
 with right:
-    st.markdown('<div class="ac-section-eyebrow">Outreach</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ac-card-title">LinkedIn message studio</div>', unsafe_allow_html=True)
-    st.caption("Pick a candidate, generate a tailored draft, then refine it before copying.")
+    st.header("💬 LinkedIn outreach")
 
     def parse_outreach(raw):
         if isinstance(raw, dict):
@@ -514,8 +311,7 @@ with right:
     candidate = st.session_state.selected_candidate
 
     if not candidate:
-        with st.container(border=True):
-            st.info("Run a search — results will appear here.")
+        st.info("Run a search — results will appear here.")
     else:
         _ckey = candidate.get("linkedin") or candidate.get("name") or ""
         _wk = hashlib.sha256(_ckey.encode("utf-8")).hexdigest()[:16]
@@ -524,42 +320,31 @@ with right:
             st.session_state.updated_dm_text = None
             st.session_state.chat_history = []
 
-        with st.container(border=True):
-            st.markdown('<div class="ac-section-eyebrow">Selected candidate</div>', unsafe_allow_html=True)
-            st.markdown(
-                f'<div class="ac-card-title">{html.escape(str(candidate.get("name", "Unknown")))}</div>',
-                unsafe_allow_html=True,
+        st.subheader(str(candidate.get("name", "Unknown")))
+        _hl = candidate.get("headline")
+        st.caption("" if _hl in (None, "None") else str(_hl))
+
+        prov = candidate.get("_provenance")
+        vd = candidate.get("_vector_distance")
+        if prov == "lancedb_search" and vd is not None:
+            try:
+                st.caption(format_match_line(float(vd)))
+            except (TypeError, ValueError):
+                st.caption("Semantic ranking: distance not available.")
+        elif prov == "queue":
+            st.caption(
+                "From **queue** — no vector score. Choose someone from **Top Candidates** after Search to see match %."
             )
-            _hl = candidate.get("headline")
-            st.caption("" if _hl in (None, "None") else str(_hl))
+        else:
+            st.caption(
+                "Run **Search** and open a row from **Top Candidates** to see cosine / semantic match scores."
+            )
 
-            prov = candidate.get("_provenance")
-            vd = candidate.get("_vector_distance")
-            if prov == "lancedb_search" and vd is not None:
-                try:
-                    st.caption(format_match_line(float(vd)))
-                except (TypeError, ValueError):
-                    st.caption("Semantic ranking: distance not available.")
-            elif prov == "queue":
-                st.caption(
-                    "From **queue** — no vector score. Choose someone from **Top Candidates** after Search to see match %."
-                )
-            else:
-                st.caption(
-                    "Run **Search** and open a row from **Top Candidates** to see cosine / semantic match scores."
-                )
-
-            _li = (candidate.get("linkedin") or "").strip()
-            if _li:
-                st.link_button("Open LinkedIn", _li, use_container_width=True)
-            else:
-                st.caption("No LinkedIn URL — open profile from search when available.")
-
-        st.write("")
-
-        st.markdown('<div class="ac-section-eyebrow">Draft</div>', unsafe_allow_html=True)
-        st.markdown('<div class="ac-card-title">Personalized outreach</div>', unsafe_allow_html=True)
-        st.caption("Uses one cached LLM draft while you stay on this person.")
+        _li = (candidate.get("linkedin") or "").strip()
+        if _li:
+            st.link_button("LinkedIn", _li)
+        else:
+            st.caption("No LinkedIn URL — open profile from search when available.")
 
         draft_cache_key = f"{st.session_state.user_id}::{_ckey}"
         if st.session_state.get("outreach_draft_cache_key") != draft_cache_key:
@@ -589,108 +374,110 @@ with right:
 
         dm_text = st.session_state.updated_dm_text or drafts.get("drafted_dm", "")
 
-        with st.container(border=True):
-            st.markdown("#### Why this candidate")
-            st.markdown(reason_text or "- Carter could not extract reasons from the draft response.")
+        st.subheader("Why this candidate")
+        st.markdown(reason_text)
 
-        with st.container(border=True):
-            st.markdown("#### LinkedIn DM")
-            st.caption(
-                "Paste the DM into LinkedIn yourself — messages must come from your account."
-            )
-            _dm_widget_key = "dm_ta_" + hashlib.sha256(_ckey.encode("utf-8")).hexdigest()[:16]
-            current_dm = st.text_area(
-                "DM draft",
-                value=dm_text,
-                height=180,
-                key=_dm_widget_key,
-                label_visibility="collapsed",
-            )
-            cpy1, cpy2 = st.columns(2)
-            with cpy1:
-                render_copy_dm_button(current_dm or "", "outreach_main")
-            with cpy2:
-                st.download_button(
-                    label="Download DM as .txt",
-                    data=current_dm or "",
-                    file_name="linkedin_dm.txt",
-                    mime="text/plain",
-                    key=f"download_dm_txt_{_wk}",
-                    use_container_width=True,
-                )
-
-        with st.container(border=True):
-            st.markdown("#### Refine with Carter")
-            st.caption("Ask for tone, length, specificity, or a more natural opener.")
-
-            tone = st.selectbox(
-                "Tone",
-                [
-                    "Professional",
-                    "Warm & Friendly",
-                    "Founder-to-Founder",
-                    "Short & Punchy",
-                    "Academic",
-                    "Recruiter Tone",
-                ],
-                key=f"tone_select_{_wk}",
+        st.caption(
+            "Paste the DM into LinkedIn yourself — messages must come from your account."
+        )
+        st.subheader("LinkedIn DM")
+        _dm_widget_key = "dm_ta_" + hashlib.sha256(_ckey.encode("utf-8")).hexdigest()[:16]
+        current_dm = st.text_area(
+            "DM draft",
+            value=dm_text,
+            height=160,
+            key=_dm_widget_key,
+            label_visibility="collapsed",
+        )
+        cpy1, cpy2 = st.columns(2)
+        with cpy1:
+            render_copy_dm_button(current_dm or "", "outreach_main")
+        with cpy2:
+            st.download_button(
+                label="Download DM as .txt",
+                data=current_dm or "",
+                file_name="linkedin_dm.txt",
+                mime="text/plain",
+                key=f"download_dm_txt_{_wk}",
+                use_container_width=True,
             )
 
-            user_question = st.text_input(
-                "Ask Carter to refine your DM",
-                placeholder="e.g., make it warmer and shorter",
-                key=f"refine_input_{_wk}",
-            )
+        # REFINEMENT CHAT
+        st.divider()
+        st.subheader("🧠 Refine With Agent Carter")
 
-            if st.button("Send to Carter", use_container_width=True, key=f"refine_button_{_wk}"):
-                safe_q = sanitize_text(user_question)
+        tone = st.selectbox(
+            "Select tone:",
+            [
+                "Professional",
+                "Warm & Friendly",
+                "Founder-to-Founder",
+                "Short & Punchy",
+                "Academic",
+                "Recruiter Tone",
+            ],
+            key=f"tone_select_{_wk}",
+        )
 
-                with st.spinner("Thinking…"):
-                    try:
-                        reply = chat_refine(
-                            safe_q,
-                            {
-                                "name": candidate["name"],
-                                "headline": candidate["headline"],
-                                "linkedin": candidate["linkedin"],
-                                "dm": current_dm or "",
-                                "tone": tone,
-                            },
-                        )
-                    except Exception as e:
-                        st.error(f"Refinement failed: {e}")
-                        st.stop()
+        user_question = st.text_input(
+            "Ask Carter to refine your DM:",
+            placeholder="e.g., make it warmer and shorter",
+            key=f"refine_input_{_wk}",
+        )
 
-                st.session_state.chat_history.append(("user", user_question))
-                st.session_state.chat_history.append(("bot", reply))
-                st.rerun()
+        if st.button("Send to Carter", use_container_width=True, key=f"refine_button_{_wk}"):
+            safe_q = sanitize_text(user_question)
 
-            # CHAT HISTORY
-            if st.session_state.chat_history:
-                st.markdown("##### Conversation")
-                for sender, msg in st.session_state.chat_history:
-                    body = format_chat_message_html(msg)
-                    bubble_class = "ac-chat-user" if sender == "user" else "ac-chat-bot"
+            with st.spinner("Thinking…"):
+                try:
+                    reply = chat_refine(
+                        safe_q,
+                        {
+                            "name": candidate["name"],
+                            "headline": candidate["headline"],
+                            "linkedin": candidate["linkedin"],
+                            "dm": current_dm or "",
+                            "tone": tone,
+                        },
+                    )
+                except Exception as e:
+                    st.error(f"Refinement failed: {e}")
+                    st.stop()
+
+            st.session_state.chat_history.append(("user", user_question))
+            st.session_state.chat_history.append(("bot", reply))
+            st.rerun()
+
+        # CHAT HISTORY
+        if st.session_state.chat_history:
+            st.markdown("### Conversation")
+            for sender, msg in st.session_state.chat_history:
+                body = format_chat_message_html(msg)
+                if sender == "user":
                     st.markdown(
-                        f'<div class="ac-chat-bubble {bubble_class}">{body}</div>',
+                        f"<div style='padding:10px; border-radius:8px; margin:6px; text-align:right;'>{body}</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f"<div style='padding:10px; border-radius:8px; margin:6px; text-align:left;'>{body}</div>",
                         unsafe_allow_html=True,
                     )
 
-            # APPLY refinements
-            if st.session_state.chat_history and st.session_state.chat_history[-1][0] == "bot":
-                last_msg = st.session_state.chat_history[-1][1]
-                if st.button("Apply refinement to DM", key=f"apply_dm_{_wk}", use_container_width=True):
-                    st.session_state.updated_dm_text = last_msg
-                    st.success("DM updated.")
-                    st.rerun()
+        # APPLY refinements
+        if st.session_state.chat_history and st.session_state.chat_history[-1][0] == "bot":
+            last_msg = st.session_state.chat_history[-1][1]
+            if st.button("✨ Apply refinement to DM", key=f"apply_dm_{_wk}"):
+                st.session_state.updated_dm_text = last_msg
+                st.success("DM updated!")
+                st.rerun()
 
 
 # -------------------------------------------------------
 # QUEUE
 # -------------------------------------------------------
 st.divider()
-st.markdown('<div class="ac-section-eyebrow">Queue</div>', unsafe_allow_html=True)
-st.markdown('<div class="ac-card-title">People saved for outreach</div>', unsafe_allow_html=True)
+st.header("🗂️ Queue")
 
 with st.expander("Add someone to the queue (without running search)", expanded=False):
     st.caption(
@@ -730,31 +517,27 @@ except Exception as e:
     rows = []
 
 if not rows:
-    with st.container(border=True):
-        st.info("Queue is empty.")
+    st.write("Queue is empty.")
 else:
     for r in rows:
-        with st.container(border=True):
-            st.markdown(f"#### {r.full_name}")
+        with st.container():
+            st.markdown(f"**{r.full_name}**")
             st.caption("" if r.headline in (None, "None") else r.headline)
             li = r.linkedin_url or ""
-            q_link, q_action = st.columns([1, 1])
-            with q_link:
-                if li.startswith("manual:"):
-                    st.caption("No LinkedIn URL on file (internal id).")
-                elif (li or "").strip():
-                    st.link_button("Open LinkedIn", li.strip(), use_container_width=True)
-                else:
-                    st.caption("No LinkedIn URL.")
+            if li.startswith("manual:"):
+                st.caption("No LinkedIn URL on file (internal id).")
+            elif (li or "").strip():
+                st.link_button("Open LinkedIn", li.strip())
+            else:
+                st.caption("No LinkedIn URL.")
 
-            with q_action:
-                if st.button("Use for outreach", key=f"use_q_{r.id}", use_container_width=True):
-                    outreach_li = None if (li.startswith("manual:")) else li
-                    st.session_state.selected_candidate = {
-                        "name": r.full_name,
-                        "headline": r.headline or "",
-                        "linkedin": outreach_li or "",
-                        "_vector_distance": None,
-                        "_provenance": "queue",
-                    }
-                    st.rerun()
+            if st.button("Use for Outreach", key=f"use_q_{r.id}"):
+                outreach_li = None if (li.startswith("manual:")) else li
+                st.session_state.selected_candidate = {
+                    "name": r.full_name,
+                    "headline": r.headline or "",
+                    "linkedin": outreach_li or "",
+                    "_vector_distance": None,
+                    "_provenance": "queue",
+                }
+                st.rerun()
