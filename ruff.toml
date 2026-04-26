@@ -1,6 +1,0 @@
-line-length = 100
-target-version = "py310"
-exclude = ["experiments", ".venv", "venv"]
-
-[lint]
-select = ["E", "F", "I", "W"]

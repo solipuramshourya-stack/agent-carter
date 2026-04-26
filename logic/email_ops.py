@@ -1,14 +1,15 @@
 import base64
+import json
 from email.mime.text import MIMEText
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-
-from logic.config import get_gmail_token_dict
+import streamlit as st
 
 
 def gmail_send_email(to_email: str, subject: str, body: str):
 
-    token_info = get_gmail_token_dict()
+    # LOAD JSON CREDENTIALS FROM SECRETS
+    token_info = json.loads(st.secrets["GMAIL_TOKEN"])
 
     creds = Credentials.from_authorized_user_info(
         token_info,

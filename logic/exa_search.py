@@ -1,21 +1,12 @@
 # logic/exa_search.py
-import logging
+import os
 import re
 import html
 from exa_py import Exa
+import streamlit as st
 
-from logic.config import get_exa_api_key, get_search_result_limit
-
-logger = logging.getLogger(__name__)
-
-_exa_client = None
-
-
-def _get_exa() -> Exa:
-    global _exa_client
-    if _exa_client is None:
-        _exa_client = Exa(get_exa_api_key())
-    return _exa_client
+EXA_KEY = st.secrets["EXA_API_KEY"]
+exa = Exa(EXA_KEY)
 
 
 # -------------------------------
@@ -64,27 +55,23 @@ def sanitize_text(text: str) -> str:
     return cleaned
 
 
-def run_exa(query: str, num_results: int | None = None):
-    if num_results is None:
-        num_results = get_search_result_limit()
-
+def run_exa(query: str):
     q = f"site:linkedin.com/in {query}"
-    resp = _get_exa().search(
+    resp = exa.search(
         query=q,
-        num_results=num_results,
+        num_results=10,
         type="keyword",
-        contents={"text": {"max_characters": 5000}},
+        contents={"text": {"max_characters": 5000}}
     )
 
     results = []
     for r in resp.results:
-        results.append(
-            {
-                "full_name": sanitize_text(r.title or ""),
-                "linkedin_url": r.url,
-                "headline": "",
-                "summary": sanitize_text(r.text or ""),
-            }
-        )
-    logger.debug("Exa returned %d results for query prefix", len(results))
+        results.append({
+            # ONLY CHANGE: sanitize the text fields before they ever hit the LLM
+            "full_name": sanitize_text(r.title or ""),
+            "linkedin_url": r.url,
+            "headline": "",
+            "summary": sanitize_text(r.text or "")
+        })
+        print("DEBUG OPENAI:", results)
     return results
