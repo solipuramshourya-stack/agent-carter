@@ -34,48 +34,17 @@ def _streamlit_secrets() -> Mapping[str, Any] | None:
     return None
 
 
-def _secret_value_to_string(val: Any) -> str | None:
-    if val is None:
-        return None
-    if isinstance(val, (dict, list)):
-        return json.dumps(val)
-    text = str(val).strip()
-    return text or None
-
-
-def _lookup_secret(sec: Mapping[str, Any], name: str) -> str | None:
-    """Find a secret by name, allowing common Streamlit nested secret layouts."""
-    if name in sec:
-        return _secret_value_to_string(sec[name])
-
-    target = name.lower()
-
-    try:
-        for key in sec.keys():
-            if str(key).lower() == target:
-                return _secret_value_to_string(sec[key])
-    except Exception:
-        return None
-
-    # Some deployments store keys under sections like [api_keys] or [secrets].
-    for section in ("api_keys", "secrets", "default", "general"):
-        nested = sec.get(section) if hasattr(sec, "get") else None
-        if isinstance(nested, Mapping):
-            found = _lookup_secret(nested, name)
-            if found:
-                return found
-
-    return None
-
-
 def get_env_or_secret(name: str) -> str | None:
     """Single string: OS env (uppercase) then Streamlit secret of same name."""
     v = os.environ.get(name)
     if v is not None and str(v).strip() != "":
         return str(v).strip()
     sec = _streamlit_secrets()
-    if sec is not None:
-        return _lookup_secret(sec, name)
+    if sec is not None and name in sec:
+        val = sec[name]
+        if isinstance(val, (dict, list)):
+            return json.dumps(val)
+        return str(val).strip() if val is not None else None
     return None
 
 
